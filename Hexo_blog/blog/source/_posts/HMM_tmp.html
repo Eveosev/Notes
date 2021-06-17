@@ -365,7 +365,8 @@ code {
           : 'default'
     });
   </script>
-<h1 id=""></h1>
+<h1 id="introduction">Introduction</h1>
+<p>在这篇文章中，主要探讨如何求一些事件的期望步长(最小步长)。其中，主要涉及如何书写Markov概率图，并从概率图求出相应的转移矩阵和利用转移矩阵求解期望。</p>
 <h1 id="questions">Questions</h1>
 <ol>
 <li>
@@ -378,7 +379,7 @@ code {
 <p>击败BOSS, 可能掉落套装A的所有装备，若套装A一共包含4个部位，每件装备的掉率均为10%，每次只掉落一件装备，求问玩家集齐套装A需要击败BOSS多少次。</p>
 </li>
 </ol>
-<h1 id="solution-1">Solution 1</h1>
+<h1 id="question-1">Question 1</h1>
 <h2 id="method-11-%E7%BA%BF%E6%80%A7%E6%96%B9%E7%A8%8B%E8%A7%A3%E6%B3%95">Method 1.1： 线性方程解法</h2>
 <p>我们假设硬币是均匀的，那么每一次的投掷结果是</p>
 <p>$$X_i  =
@@ -392,19 +393,9 @@ code {
 <p>由于单次投掷硬币有且只有两个结果，为了方便，定义正面朝上为1， 反面朝上为0.</p>
 </li>
 <li>
-<p>定义，$h_i = P_i(hit {111})$表示从状态$i$开始，抵达${111}$三个正面朝上的概率, $\mu_i = E_i(time\ to\ hit {111})$表示从状态$i$开始，抵达${111}$三个正面朝上的最小时间(即为投掷次数)。</p>
+<p>定义，$h_i = P_i(hit\ {111})$表示从状态$i$开始，抵达状态${111}$三个正面朝上的概率, $\mu_i = E_i(time\ to\ hit\ {111})$表示从状态$i$开始，抵达${111}$三个正面朝上的最小时间(即为投掷次数)。</p>
 </li>
 </ul>
-<p>明显的，我们有</p>
-<p>$$
-h_3 = 1, \quad \mu_3 = 0
-$$</p>
-<p>$$\mu_i  =
-\left{ \begin{aligned}
-1 + \sum_{j=1}^i p_j\mu_j\
-0,
-\end{aligned}
-\right.$$</p>
 <pre><code class="language-mermaid"><div class="mermaid">flowchart LR
     u0 --> |0.5| u1
     u0 --> |0.5| u0
@@ -414,6 +405,21 @@ $$</p>
     u2 --> |0.5| u0
     u3 --> |1| u3
 </div></code></pre>
+<p>a. 假设当前在状态$3$, 显然从状态$3$转移到状态$3$的概率$h_3 = 1$并且从从状态$3$转移到状态$3$的步长为$0$</p>
+<p>$$
+h_3 = 1, \quad \mu_3 = 0
+$$</p>
+<p>b. 假设当前在状态$0$, 从状态$0$出发，有两个结果，分别是有$0.5$的概率到达状态$0$或者有$0.5$的概率到达状态$1$. 则有</p>
+<p>$$
+h_0 = 0.5 h_0 + 0.5 h_1, \quad \mu_0 = 1 + 0.5\mu_0 + 0.5\mu_1
+$$</p>
+<p>c. 类似的，我们可以书写出其他等式</p>
+<p>$$\mu_i  =
+\left{ \begin{aligned}
+1 + \sum_{j=1}^i p_j\mu_j\
+0,
+\end{aligned}
+\right.$$</p>
 <p>化作线性方程组形式:</p>
 <p>$$
 \begin{cases}
@@ -423,6 +429,7 @@ $$</p>
 \mu_3 = 0
 \end{cases}
 $$</p>
+<p>求解如下:</p>
 <p>$$
 \begin{aligned}
 \because &amp; \quad \mu_3 = 0 \Rightarrow \mu_2 = 1 + p\mu_0 \
@@ -436,8 +443,40 @@ $$</p>
 \mu_0 = 14
 \end{aligned}
 $$</p>
+<p>$\therefore$, $\mu_1 = 12$, $\mu_2 = 8$</p>
 <h2 id="method-12-%E8%BD%AC%E7%A7%BB%E7%9F%A9%E9%98%B5">Method 1.2 转移矩阵</h2>
-<h1 id="solution-2">Solution 2</h1>
+<p>如果状态方程已知，我们可以写出相应的概率转移矩阵$P$ (transition matrix)</p>
+<p>$$
+P = \begin{pmatrix}
+0.5 &amp; 0.5 &amp; 0.5 &amp; 0\
+0.5 &amp; 0 &amp; 0 &amp; 0 \
+0 &amp; 0.5 &amp; 0 &amp; 0 \
+0 &amp; 0 &amp; 0.5 &amp; 1
+\end{pmatrix}
+$$</p>
+<pre><code>性质1：
+记状态E为吸收态，记Q为P的一个子矩阵且Q为将P中关于吸收态E的行与列去掉后所得到的子式。
+</code></pre>
+<p>在这个问题中，我们的目标状态是抵达${111}$, 这样的目标状态，我们称之为<strong>吸收态</strong>，其对应着第4行与第4列。将与吸收态${111}$相关的行列去掉到，我们得到如下子矩阵$Q$:</p>
+<p>$$
+Q = \begin{pmatrix}
+0.5 &amp; 0.5 &amp; 0.5\
+0.5 &amp; 0 &amp; 0 \
+0 &amp; 0.5 &amp; 0
+\end{pmatrix}
+$$</p>
+<pre><code>性质2：
+矩阵N = inv(I-Q)称为P的基础矩阵。其中，第i行第j列的元素为从状态i转移到状态j的最小步长(期望步长)
+</code></pre>
+<p>所以，我们有</p>
+<p>$$
+N = (I-Q)^{-1} = \begin{pmatrix}
+8 &amp; 6 &amp; 4\
+4 &amp; 4 &amp; 2 \
+2 &amp; 2 &amp; 2
+\end{pmatrix}
+$$</p>
+<h1 id="question-2">Question 2</h1>
 <pre><code class="language-mermaid"><div class="mermaid">flowchart LR
     u0 --> |0.3| u1
     u0 --> |0.7| u0
