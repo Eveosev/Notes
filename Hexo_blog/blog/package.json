@@ -28,6 +28,6 @@
     "hexo-theme-volantis": "^4.3.1"
   },
   "devDependencies": {
-    "mermaid": "^8.10.1"
+    "mermaid": "^8.11.0"
   }
 }
